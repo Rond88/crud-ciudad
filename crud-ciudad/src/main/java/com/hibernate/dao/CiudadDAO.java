@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.hibernate.query.Query;
 
 import com.hibernate.model.Ciudad;
 import com.hibernate.util.HibernateUtil;
@@ -82,5 +83,50 @@ public class CiudadDAO {
 		return ciudades;
 	}
 	
+	public Ciudad selectCiudadByNombre(String nombre) {
+		Ciudad c=null;
+		Transaction transaction=null;
+		try(Session session=HibernateUtil.getSessionFactory().openSession()){
+			transaction=session.beginTransaction();
+			Query<Ciudad> query=session.createQuery("FROM Ciudad WHERE nombre = :nomParam", Ciudad.class);
+			query.setParameter("nomParam", nombre);
+			c=query.uniqueResult();
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return c;
+	}
+	
+	public List<Ciudad> selectCiudadByHabitantes(int numH){
+		Transaction transaction=null;
+		List<Ciudad> ciudades=null;
+		Ciudad c=null;
+		try(Session session=HibernateUtil.getSessionFactory().openSession()){
+			transaction=session.beginTransaction();
+			Query<Ciudad> query=session.createQuery("FROM Ciudad WHERE numHabitantes < :numHabitantesParam", Ciudad.class);
+			query.setParameter("numHabitantesParam", numH);
+			ciudades=query.getResultList();
+		}catch(Exception e) {
+			if(transaction!=null) {
+				transaction.rollback();
+			}
+		}
+		return ciudades;
+	}
+	
+	public List<Ciudad> selectAllCiudadMillon(){
+		Transaction transaction=null;
+		List<Ciudad> ciudades=null;
+		Ciudad c=null;
+		try(Session session=HibernateUtil.getSessionFactory().openSession()){
+			transaction=session.beginTransaction();
+			ciudades=session.createQuery("FROM Ciudad WHERE numHabitantes > 1000000", Ciudad.class).getResultList();
+		}catch(Exception e) {
+			if(transaction!=null) {
+				transaction.rollback();
+			}
+		}
+		return ciudades;
+	}
 	
 }
